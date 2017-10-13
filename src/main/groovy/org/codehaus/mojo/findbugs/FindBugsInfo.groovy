@@ -99,8 +99,6 @@ interface FindBugsInfo {
 
 	static final String CLASS_SUFFIX = '.class'
 
-	def findbugsEfforts = [Max: "max", Min: "min", Default: "min"]
-
 	def findbugsThresholds = [High: "high", Exp: "experimental", Low: "low", Medium: "medium", Default: "medium"]
 
 	def findbugsPriority = ["unknown", "High", "Medium", "Low"]

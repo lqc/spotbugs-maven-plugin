@@ -382,7 +382,7 @@ class FindbugsReportGenerator implements FindBugsInfo {
 		sink.paragraph()
 		sink.text(bundle.getString(EFFORT_KEY) + FindBugsInfo.BLANK)
 		sink.italic()
-		sink.text(FindBugsInfo.findbugsEfforts.get(effort))
+		sink.text(effort)
 		sink.italic_()
 		sink.paragraph_()
 		sink.section1_()

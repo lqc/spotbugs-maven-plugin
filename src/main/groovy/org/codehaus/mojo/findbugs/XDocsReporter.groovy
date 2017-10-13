@@ -161,7 +161,7 @@ class XDocsReporter {
 			mkp.xmlDeclaration()
 			log.debug("generateReport findbugsResults is ${findbugsResults}")
 
-			BugCollection(version: getFindBugsVersion(), threshold: FindBugsInfo.findbugsThresholds.get(threshold), effort: FindBugsInfo.findbugsEfforts.get(effort)) {
+			BugCollection(version: getFindBugsVersion(), threshold: FindBugsInfo.findbugsThresholds.get(threshold), effort: effort) {
 
 				log.debug("findbugsResults.FindBugsSummary total_bugs is ${findbugsResults.FindBugsSummary.@total_bugs.text()}")
 

@@ -305,7 +305,7 @@ class FindBugsMojo extends AbstractMavenReport {
      *
      * @since 1.0-beta-1
      */
-    @Parameter(defaultValue = "Default", property = "findbugs.effort")
+    @Parameter(defaultValue = "default", property = "findbugs.effort")
     String effort
 
     /**
@@ -483,7 +483,7 @@ class FindBugsMojo extends AbstractMavenReport {
      */
     @Parameter(property = "findbugs.skipEmptyReport", defaultValue = "false")
     boolean skipEmptyReport
-    
+
     /**
      * Set the path of the user preferences file to use.
      * Will try to read the path as a resource before treating it as a local path.
@@ -655,7 +655,7 @@ class FindBugsMojo extends AbstractMavenReport {
 
                     generator.threshold = threshold
 
-                    generator.effort = effort
+                    generator.effort = getEffort();
 
                     generator.setFindbugsResults(new XmlSlurper().parse(outputFindbugsFile))
 
@@ -712,7 +712,7 @@ class FindBugsMojo extends AbstractMavenReport {
                     }
                 }
 
-                XDocsReporter xDocsReporter = new XDocsReporter(getBundle(locale), log, threshold, effort, outputEncoding)
+                XDocsReporter xDocsReporter = new XDocsReporter(getBundle(locale), log, threshold, getEffort(), outputEncoding)
                 xDocsReporter.setOutputWriter(new OutputStreamWriter(new FileOutputStream(new File("${xmlOutputDirectory}/findbugs.xml")), outputEncoding))
                 xDocsReporter.setFindbugsResults(new XmlSlurper().parse(outputFindbugsFile))
                 xDocsReporter.setCompileSourceRoots(this.compileSourceRoots)
@@ -1142,7 +1142,21 @@ class FindBugsMojo extends AbstractMavenReport {
         log.debug("thresholdParameter is ${thresholdParameter}")
 
         return thresholdParameter
+    }
 
+
+    protected String getEffort() {
+        switch (effort) {
+            case "Max":
+                return "max"
+            case "Min":
+                return "min"
+            case "":
+            case "Default":
+                return "default"
+            default:
+                return effort;
+        }
     }
 
     /**
@@ -1152,24 +1166,7 @@ class FindBugsMojo extends AbstractMavenReport {
      *
      */
     protected String getEffortParameter() {
-        log.debug("effort is ${effort}")
-
-        String effortParameter
-
-        switch (effort) {
-            case "Max":
-                effortParameter = "max"; break
-
-            case "Min":
-                effortParameter = "min"; break
-
-            default:
-                effortParameter = "default"; break
-        }
-
-        log.debug("effortParameter is ${effortParameter}")
-
-        return "-effort:" + effortParameter
+        return "-effort:" + getEffort();
     }
 
     /**
