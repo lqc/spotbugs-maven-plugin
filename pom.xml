@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd ">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd ">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -113,8 +114,8 @@
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
     <snapshotRepository>
-        <id>ossrh</id>
-        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
     <site>
       <id>github-project-site</id>
@@ -127,8 +128,7 @@
     <projectVersion>${project.version}</projectVersion>
 
     <junitVersion>4.12</junitVersion>
-    <spotbugsVersion>3.1.0-RC5</spotbugsVersion>
-    <spotbugsTag>3.1.0_RC5</spotbugsTag>
+    <spotbugsVersion>3.1.0-RC7</spotbugsVersion>
 
     <antVersion>1.9.9</antVersion>
     <groovyVersion>2.4.12</groovyVersion>
@@ -145,7 +145,6 @@
     <plexusResourcesVersion>1.1.0</plexusResourcesVersion>
     <plexusUtilsVersion>3.1.0</plexusUtilsVersion>
 
-    <antrunPluginVersion>1.8</antrunPluginVersion>
     <l10nPluginVersion>1.8</l10nPluginVersion>
     <codenarcPluginVersion>0.22-1</codenarcPluginVersion>
     <gmavenPluginVersion>1.5</gmavenPluginVersion>
@@ -160,11 +159,10 @@
     <wagonGitsiteExtensionVersion>0.3.1</wagonGitsiteExtensionVersion>
 
     <spotbugsTestDebug>false</spotbugsTestDebug>
+
     <integrationTestSrc>${project.build.directory}/it-src-spotbugs</integrationTestSrc>
-    <localTestSrc>${user.dir}/SpotBugs</localTestSrc>
-    <remoteTestSrc>scm:git:https://github.com/spotbugs/spotbugs/</remoteTestSrc>
-    <includesTestSrcPattern>**spotbugsTestCases/src/java/A*.java, **spotbugsTestCases/src/java/Use*.java, **spotbugsTestCases/src/java/annotations/*.java</includesTestSrcPattern>
-    <testSrc>remote</testSrc>
+    <it.copyFromLocal.skip>true</it.copyFromLocal.skip>
+    <it.copyFromJAR.skip>true</it.copyFromJAR.skip>
 
     <pmd.skip>true</pmd.skip>
     <cpd.skip>true</cpd.skip>
@@ -189,10 +187,10 @@
       <artifactId>spotbugs</artifactId>
       <version>${spotbugsVersion}</version>
       <exclusions>
-          <exclusion>
-              <groupId>xml-apis</groupId>
-              <artifactId>xml-apis</artifactId>
-          </exclusion>
+        <exclusion>
+          <groupId>xml-apis</groupId>
+          <artifactId>xml-apis</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -571,14 +569,73 @@
       </plugin>
     </plugins>
   </reporting>
+
   <profiles>
     <profile>
       <id>run-its</id>
       <properties>
+        <it.copyFromJAR.skip>false</it.copyFromJAR.skip>
+        <it.copyFromLocal.skip>true</it.copyFromLocal.skip>
         <spotbug.debug>false</spotbug.debug>
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>3.0.2</version>
+            <executions>
+              <execution>
+                <id>copy-spotbugs-testcase-from-jar</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <skip>${it.copyFromJAR.skip}</skip>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>com.github.spotbugs</groupId>
+                      <artifactId>spotbugs</artifactId>
+                      <version>${spotbugsVersion}</version>
+                      <classifier>sources</classifier>
+                    </artifactItem>
+                  </artifactItems>
+                  <outputDirectory>${integrationTestSrc}</outputDirectory>
+                  <includes>spotbugsTestCases/src/java/A*.java,spotbugsTestCases/src/java/Use*.java,spotbugsTestCases/src/java/annotations/*.java</includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>3.0.2</version>
+            <executions>
+              <execution>
+                <id>copy-spotbugs-testcase-from-local-src</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <skip>${it.copyFromLocal.skip}</skip>
+                  <outputDirectory>${integrationTestSrc}</outputDirectory>
+                  <resources>
+                    <resource>
+                      <filtering>false</filtering>
+                      <directory>${localTestSrc}</directory>
+                      <includes>
+                        <include>spotbugsTestCases/src/java/A*.java</include>
+                        <include>spotbugsTestCases/src/java/Use*.java</include>
+                        <include>spotbugsTestCases/src/java/annotations/*.java</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-invoker-plugin</artifactId>
@@ -641,91 +698,16 @@
     </profile>
 
     <profile>
-      <id>spot-it-src-checkout</id>
-      <activation>
-        <property>
-          <name>testSrc</name>
-          <value>remote</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-scm-plugin</artifactId>
-            <version>${scmPluginVersion}</version>
-            <executions>
-              <execution>
-                <id>prepare-integration-test-remote-spotbugs-src</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>checkout</goal>
-                </goals>
-                <configuration>
-                  <connectionUrl>${remoteTestSrc}</connectionUrl>
-                  <checkoutDirectory>${integrationTestSrc}</checkoutDirectory>
-                  <providerImplementations>
-                    <git>jgit</git>
-                  </providerImplementations>
-                  <includes>${includesTestSrcPattern}</includes>
-                  <scmVersion>${spotbugsTag}</scmVersion>
-                  <scmVersionType>tag</scmVersionType>
-                </configuration>
-              </execution>
-            </executions>
-            <dependencies>
-              <dependency>
-                <groupId>org.apache.maven.scm</groupId>
-                <artifactId>maven-scm-provider-jgit</artifactId>
-                <version>${scmPluginVersion}</version>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>spot-it-src-local</id>
-      <activation>
-        <property>
-          <name>testSrc</name>
-          <value>local</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <version>${antrunPluginVersion}</version>
-            <executions>
-              <execution>
-                <id>prepare-integration-test-local-spotbugs-src</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target>
-
-                    <echo>Copying Source for Tests......</echo>
-                    <echo>Making ${integrationTestSrc}</echo>
-                    <mkdir dir="${integrationTestSrc}" />
-                    <echo>Copying to ${integrationTestSrc}</echo>
-                    <echo>from ${localTestSrc}</echo>
-                    <echo>for ${includesTestSrcPattern}</echo>
-                    <copy todir="${integrationTestSrc}">
-                      <fileset dir="${localTestSrc}" includes="${includesTestSrcPattern}" />
-                    </copy>
-
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+        <id>it-local-spotbugs</id>
+        <activation>
+            <property>
+                <name>localTestSrc</name>
+            </property>
+        </activation>
+        <properties>
+            <it.copyFromJAR.skip>true</it.copyFromJAR.skip>
+            <it.copyFromLocal.skip>false</it.copyFromLocal.skip>
+        </properties>
     </profile>
 
   </profiles>

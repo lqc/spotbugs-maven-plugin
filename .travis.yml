@@ -6,8 +6,7 @@ jdk:
   - openjdk8
 
 script:
-  - ./mvnw verify -B -P run-its -DtestSrc=remote
-  - ./mvnw site -B
+  - ./mvnw clean verify -B -P run-its -DtestSrc=remote
 
 deploy:
   - provider: pages
